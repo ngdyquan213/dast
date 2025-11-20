@@ -1,0 +1,47 @@
+name: CI + SonarQube
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test-and-analyze:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout code
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Sonar khuyến nghị fetch-depth = 0 để report lịch sử tốt hơn
+          fetch-depth: 0
+
+      # 2. Setup Python
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # 3. Cài dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # 4. Chạy test + coverage (tạo file coverage.xml)
+      - name: Run tests with coverage
+        run: |
+          pytest --cov=app --cov-report=xml:coverage.xml
+
+      # 5. SonarQube Scan
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v6.0.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        # Nếu đã có sonar-project.properties ở root thì KHÔNG cần thêm args
+        # Nếu project không ở root thì dùng projectBaseDir:
+        # with:
+        #   projectBaseDir: app
