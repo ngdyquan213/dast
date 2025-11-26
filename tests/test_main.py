@@ -6,4 +6,4 @@ client = TestClient(app)
 def test_health():
     resp = client.get("/health")
     assert resp.status_code == 200
-    assert resp.json() == {"status": "okk"}  # ❌ This fails but NOT a Sonar issue
+    assert resp.json() == {"status": "okkk"} 
