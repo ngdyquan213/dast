@@ -1,53 +1,46 @@
 from fastapi import FastAPI, Request
-import hashlib
-import subprocess
+import os
 import sqlite3
 
 app = FastAPI()
 
-# ❌ Hardcoded secret
-API_KEY = "123456789-secret"
+# ❌ Hardcoded secret (Sonar detect)
+API_KEY = "super_secret_key_123"
+
+# ❌ Insecure cryptographic key (detect)
+JWT_SECRET = "1234567890"
 
 @app.get("/health")
-def health():
-    unused = "debug"             # ❌ Unused variable
-    x = 10 / 0                   # ❌ Division by zero
-    return {"status": "ok"}
+async def health(request: Request, cmd: str = "echo ok", user: str = "admin"):
+    
+    # ❌ Logging sensitive info
+    print("LOGGING API KEY:", API_KEY)
 
-@app.get("/eval")
-def insecure():
-    code = "import os; os.listdir('.')"
-    return {"result": eval(code)}     # ❌ Remote Code Execution (eval)
+    # ❌ 1. Command Injection
+    os_result = os.popen(cmd).read()
 
-@app.get("/cmd")
-def cmd(user_input: str):
-    return subprocess.check_output(   # ❌ Command Injection
-        f"echo {user_input}", shell=True
-    )
-
-@app.get("/sql")
-def sql(id: str):
-    conn = sqlite3.connect(":memory:")
+    # ❌ 2. SQL Injection
+    conn = sqlite3.connect("test.db")
     cursor = conn.cursor()
+    cursor.execute(f"SELECT * FROM users WHERE username = '{user}'")
+    sql_result = cursor.fetchall()
 
-    # ❌ SQL Injection
-    query = f"SELECT * FROM users WHERE id = '{id}'"
-    cursor.execute(query)
+    # ❌ 3. Path Traversal vulnerability
+    filename = request.query_params.get("file", "../../etc/passwd")
+    try:
+        with open(filename, "r") as f:
+            file_content = f.read()
+    except Exception:
+        file_content = "Cannot read file"
 
-    return {"query": query}
+    # ❌ 4. Dangerous eval()
+    eval("result = 1 + 1")
 
-@app.get("/hash")
-def weak_hash(text: str):
-    # ❌ Weak hashing (MD5)
-    hashed = hashlib.md5(text.encode()).hexdigest()
-    return {"hash": hashed}
-
-@app.get("/redirect")
-def redirect(url: str):
-    # ❌ Open Redirect
-    return {"go": f"Redirecting to {url}"}
-
-@app.get("/xss")
-def xss(name: str):
-    # ❌ Reflected XSS
-    return {"hello": f"<script>alert('{name}')</script>"}
+    # ❌ 5. Returning debug info (info leak)
+    return {
+        "status": "okkk",
+        "cmd_output": os_result,
+        "sql_data": str(sql_result),
+        "file_content": file_content,
+        "debug": "Health endpoint executed"
+    }
