@@ -26,6 +26,5 @@ jobs:
           args: >
             -Dsonar.projectKey=dast
             -Dsonar.projectName=dast
-            -Dsonar.branch.name=main
             -Dsonar.sources=.
 
