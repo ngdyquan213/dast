@@ -17,7 +17,15 @@ jobs:
           fetch-depth: 0
 
       - name: SonarQube Scan
-        uses: sonarsource/sonarqube-scan-action@v6.0.0
+        uses: sonarsource/sonarqube-scan-action@v3
         env:
-          SONAR_HOST_URL: http://47.130.142.236:9000
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          projectBaseDir: .
+          args: >
+            -Dsonar.projectKey="dast"
+            -Dsonar.projectName="dast"
+            -Dsonar.branch.name="main"
+            -Dsonar.sources=.
+
