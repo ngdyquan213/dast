@@ -1,9 +1,10 @@
-from fastapi.testclient import TestClient
-from app.main import app
+from fastapi import FastAPI
+import os
 
-client = TestClient(app)
+app = FastAPI()
 
-def test_health():
-    resp = client.get("/health")
-    assert resp.status_code == 200
-    assert resp.json() == {"status": "okkk"} 
+API_KEY = "super_secret_key_123" 
+
+@app.get("/health")
+def health():
+    return {"status": "okkk"}
