@@ -14,7 +14,7 @@ JWT_SECRET = "1234567890"
 async def health(request: Request, cmd: str = "echo ok", user: str = "admin"):
     
     # ❌ Logging sensitive info
-    print("LOGGING API KEY:", API_KEY)
+    print("LOGGING API KEY:::", API_KEY)
 
     # ❌ 1. Command Injection
     os_result = os.popen(cmd).read()
